@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Service to Product in 120 Days</title>
+  <meta name="description" content="Tick off the 120-day product-company roadmap and keep your progress on every device.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%236D28D9'/%3E%3Cpath d='M8 17l5.5 5.5L24 10' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+
+<p class="boot" id="bootView">Loading…</p>
+
+<main class="login" id="loginView" hidden>
+  <section class="login-form">
+    <div class="login-intro">
+      <h1>Service to Product in 120 Days</h1>
+      <p class="motto" id="loginIntro">Sign in to tick off your days. Your progress stays in your own account, so it follows you to every device.</p>
+    </div>
+
+    <button class="google" id="google" type="button">
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+        <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.97 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3.01-2.33z"/>
+        <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <p class="or"><span>or use your email</span></p>
+
+    <form class="fields" id="emailForm" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <p class="form-note" id="formNote" role="alert" hidden></p>
+      <button class="primary" id="emailSubmit" type="submit">Sign in</button>
+    </form>
+
+    <div class="login-links">
+      <button class="link" id="forgot" type="button">Forgot password?</button>
+      <button class="link" id="switchMode" type="button">New here? Create an account</button>
+    </div>
+  </section>
+
+  <aside class="login-side" aria-hidden="true">
+    <dl class="login-stats">
+      <div><dt>days</dt><dd>120</dd></div>
+      <div><dt>tasks to tick</dt><dd>480</dd></div>
+      <div><dt>review days</dt><dd>17</dd></div>
+      <div><dt>project milestones</dt><dd>12</dd></div>
+    </dl>
+    <div class="cells static" id="loginMap"></div>
+  </aside>
+</main>
+
+<div id="appView" hidden>
+  <header class="top">
+    <div class="wrap top-row">
+      <button class="mark" id="toTop" type="button">Service to Product</button>
+      <span class="status" id="status" data-tone="wait"><i></i><span id="statusText">Loading your progress…</span></span>
+      <button class="jump" id="jump" type="button" hidden>Day 1</button>
+    </div>
+    <div class="track"><b id="bar"></b></div>
+  </header>
+
+  <main>
+    <section class="wrap hero">
+      <div class="lead">
+        <div>
+          <h1>Service to Product in 120 Days</h1>
+          <p class="motto">Tick each box when done. Missed a day? Move it forward, never skip it.</p>
+          <p class="who">Signed in as <b id="who"></b> <button class="link" id="signOut" type="button">Sign out</button></p>
+        </div>
+        <div class="score"><b id="pct">0%</b><span id="totals">0 of 492 boxes ticked</span></div>
+        <dl class="stats">
+          <div><dt>Days finished</dt><dd id="sDays">0/120</dd></div>
+          <div><dt>Daily tasks</dt><dd id="sTasks">0/480</dd></div>
+          <div><dt>Project milestones</dt><dd id="sProj">0/12</dd></div>
+        </dl>
+        <div class="next-wrap">
+          <p class="label">Up next</p>
+          <div id="next"></div>
+        </div>
+      </div>
+      <section class="map" aria-label="Map of all 120 days">
+        <p class="label">All 120 days</p>
+        <div id="map" class="map"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i></i>Not started</span>
+          <span><i class="l-part"></i>Part done</span>
+          <span><i class="l-done"></i>Done</span>
+          <span><i class="l-review"></i>Review day</span>
+          <span><i class="l-mile"></i>Milestone</span>
+          <span><i class="l-next"></i>Up next</span>
+        </div>
+      </section>
+    </section>
+
+    <section class="wrap list" id="list">
+      <div class="tools">
+        <h2>Every day, phase by phase</h2>
+        <label class="switch" for="hide"><input type="checkbox" id="hide">Hide finished days</label>
+      </div>
+      <div id="phases"></div>
+      <section class="phase" id="projects">
+        <div class="ph-head">
+          <div class="ph-eyebrow"><p class="label">Projects</p><span class="count" id="projCount"></span></div>
+          <h3>Two resume-ready builds</h3>
+          <p>Build milestones to tick as you go. Short on time? Ship one project fully rather than two half-done.</p>
+        </div>
+        <div class="grid projects" id="projectCards"></div>
+      </section>
+    </section>
+    <p class="wrap foot">Review days are not optional. They are why this plan works.</p>
+  </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Each person can only ever reach their own progress document. Everything else is closed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['ticks'])
+        && request.resource.data.ticks is map
+        && request.resource.data.ticks.size() <= 492;
+    }
+  }
+}

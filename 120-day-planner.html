@@ -1,0 +1,678 @@
+<title>Service to Product in 120 Days</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: sticky progress bar, today's card beside the 120-day map, then every day grouped by phase.
+   Colour follows the PDF: violet topic days, amber review days. Green always means progress. */
+:root {
+  --bg: #F5F2FC; --surface: #FFFFFF; --ink: #1B1430; --muted: #5F5775; --line: #DCD4EF;
+  --violet: #6D28D9; --violet-wash: #F1ECFD; --accent: #6D28D9;
+  --amber: #B45309; --amber-wash: #FDF4DF; --amber-ink: #8A3F05;
+  --green: #15803D; --green-wash: #E6F6EC; --green-mid: #A6DDB9; --green-ink: #116532;
+  --on-head: #FFFFFF;
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #130F1E; --surface: #1C172C; --ink: #EEEAF8; --muted: #A99FC2; --line: #352C4E;
+    --violet-wash: #231B3A; --accent: #B9A2FF;
+    --amber-wash: #2B2011; --amber-ink: #F4C36B;
+    --green-wash: #14291D; --green-mid: #2C6B45; --green-ink: #7FD6A2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #130F1E; --surface: #1C172C; --ink: #EEEAF8; --muted: #A99FC2; --line: #352C4E;
+  --violet-wash: #231B3A; --accent: #B9A2FF;
+  --amber-wash: #2B2011; --amber-ink: #F4C36B;
+  --green-wash: #14291D; --green-mid: #2C6B45; --green-ink: #7FD6A2;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.45 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button { font: inherit; color: inherit; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+.wrap {
+  max-width: 1180px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Sticky bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); }
+.top-row { display: flex; align-items: center; gap: 12px; padding-block: 10px; }
+.mark { font: 800 16px/1.2 var(--display); background: none; border: 0; padding: 0; cursor: pointer; min-width: 0; flex: 1 1 auto; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status[data-tone="ok"] i { background: var(--green); }
+.status[data-tone="warn"] i { background: var(--amber); }
+.jump { font: 700 12px/1 var(--mono); color: var(--on-head); background: var(--violet); border: 0; border-radius: 6px; padding: 8px 10px; cursor: pointer; white-space: nowrap; }
+.track { height: 4px; background: var(--line); }
+.track b { display: block; height: 100%; width: 0; background: var(--green); transition: width .25s ease; }
+
+/* Opening screen */
+.hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px; padding-block: 28px 12px; align-items: start; }
+.lead { display: grid; gap: 18px; min-width: 0; }
+h1 { font: 800 clamp(30px, 4.2vw, 44px)/1.04 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+.motto { color: var(--muted); margin-top: 8px; }
+.notice { background: var(--amber-wash); color: var(--amber-ink); border: 1px solid var(--amber); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.score { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.score b { font: 700 40px/1 var(--mono); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.score span { color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.stats div { border-top: 2px solid var(--line); padding-top: 6px; min-width: 0; }
+.stats dt { font-size: 12px; color: var(--muted); }
+.stats dd { margin: 0; font: 700 16px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.label { font: 700 12px/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.next-wrap { display: grid; gap: 8px; }
+.alldone { background: var(--green-wash); color: var(--green-ink); border-radius: 10px; padding: 16px; font-weight: 600; }
+
+/* 120-day map */
+.map { display: grid; gap: 12px; min-width: 0; }
+.map-row { display: grid; gap: 5px; }
+.map-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.map-head span:first-child { font-weight: 600; min-width: 0; }
+.map-head em { font-style: normal; color: var(--muted); font-weight: 500; }
+.count { font: 500 12px/1.4 var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(27px, 1fr)); gap: 3px; }
+.cell {
+  --f: 0; --base: var(--violet-wash);
+  position: relative; aspect-ratio: 1; min-width: 0; padding: 0; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 5px;
+  font: 500 10.5px/1 var(--mono); color: var(--ink);
+  background: linear-gradient(to top, var(--green-mid) calc(var(--f) * 100%), var(--base) 0);
+}
+.cell.review { --base: var(--amber-wash); border-color: var(--amber); }
+.cell.full { background: var(--green); border-color: var(--green); color: var(--on-head); }
+.cell.milestone::after { content: ""; position: absolute; top: 2px; right: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.cell.milestone.full::after { background: var(--on-head); }
+.cell.next { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cell:hover { border-color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 13px; height: 13px; border-radius: 3px; border: 1px solid var(--line); background: var(--violet-wash); position: relative; }
+.legend .l-part { background: linear-gradient(to top, var(--green-mid) 50%, var(--violet-wash) 0); }
+.legend .l-done { background: var(--green); border-color: var(--green); }
+.legend .l-review { background: var(--amber-wash); border-color: var(--amber); }
+.legend .l-mile::after { content: ""; position: absolute; top: 1px; right: 1px; width: 4px; height: 4px; border-radius: 50%; background: var(--amber); }
+.legend .l-next { outline: 2px solid var(--ink); outline-offset: 0; }
+
+/* Day cards */
+.day { --head: var(--violet); --wash: var(--violet-wash); --edge: var(--violet); display: flex; flex-direction: column; background: var(--wash); border: 1.5px solid var(--edge); border-radius: 10px; overflow: hidden; min-width: 0; }
+.day.review { --head: var(--amber); --wash: var(--amber-wash); --edge: var(--amber); }
+.day.done { --head: var(--green); --wash: var(--green-wash); --edge: var(--green); }
+.day-head { display: flex; align-items: baseline; gap: 10px; background: var(--head); color: var(--on-head); padding: 8px 12px; }
+.day-head .n { font: 700 12px/1.3 var(--mono); white-space: nowrap; }
+.day-head h3 { font: 700 13px/1.3 var(--body); letter-spacing: .03em; flex: 1 1 auto; min-width: 0; }
+.day-head .count { color: var(--on-head); }
+.day-body { padding: 10px 12px 8px; display: grid; gap: 6px; }
+.desc { font-size: 13px; color: var(--muted); font-style: italic; }
+.flag { font-size: 13px; font-weight: 700; color: var(--amber-ink); }
+.day.done .flag { color: var(--green-ink); }
+.task label { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; cursor: pointer; min-height: 34px; }
+.task span { min-width: 0; overflow-wrap: anywhere; }
+.task b { font-weight: 600; }
+.task input {
+  appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; cursor: pointer;
+  background: var(--surface) center / 14px no-repeat; border: 2px solid var(--edge); border-radius: 4px;
+}
+.task input:checked {
+  background-color: var(--edge);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M2.5 7.5 5.6 10.6 11.5 3.8' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.task input:checked + span { color: var(--muted); text-decoration: line-through; }
+.big .day-head { padding: 10px 14px; }
+.big .day-head h3 { font-size: 15px; }
+.big .day-body { padding: 12px 14px 10px; }
+.big .task span { font-size: 16px; }
+.big .task label { min-height: 40px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 5px var(--accent); } 100% { box-shadow: 0 0 0 5px transparent; } }
+
+/* Full list */
+.tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 28px 0; }
+.tools h2 { font: 800 24px/1.1 var(--display); }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; }
+.switch input { width: 18px; height: 18px; margin: 0; accent-color: var(--violet); }
+.phase { display: grid; gap: 14px; padding-block: 28px 0; }
+.ph-head { display: grid; gap: 4px; max-width: 70ch; }
+.ph-head h3 { font: 800 22px/1.15 var(--display); text-wrap: balance; }
+.ph-head p:last-child { color: var(--muted); }
+.ph-eyebrow { display: flex; gap: 10px; align-items: baseline; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+.hide-done .list .day.done, .hide-done .phase.finished { display: none; }
+.projects { grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); }
+.foot { color: var(--muted); padding-block: 36px 40px; text-align: center; font-size: 14px; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 20px 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track b { transition: none; }
+  .flash { animation: none; outline: 2px solid var(--accent); }
+}
+</style>
+
+<header class="top">
+  <div class="wrap top-row">
+    <button class="mark" id="toTop" type="button">Service to Product</button>
+    <span class="status" id="status" data-tone="wait"><i></i><span id="statusText">Connecting…</span></span>
+    <button class="jump" id="jump" type="button" hidden>Day 1</button>
+  </div>
+  <div class="track"><b id="bar"></b></div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="lead">
+      <div>
+        <h1>Service to Product in 120 Days</h1>
+        <p class="motto">Tick each box when done. Missed a day? Move it forward, never skip it.</p>
+      </div>
+      <p class="notice" id="notice" hidden>Your account's storage isn't available here, so your ticks are saved in this browser only. Open this page on claude.ai while signed in to save them to your account.</p>
+      <div class="score"><b id="pct">0%</b><span id="totals">0 of 492 boxes ticked</span></div>
+      <dl class="stats">
+        <div><dt>Days finished</dt><dd id="sDays">0/120</dd></div>
+        <div><dt>Daily tasks</dt><dd id="sTasks">0/480</dd></div>
+        <div><dt>Project milestones</dt><dd id="sProj">0/12</dd></div>
+      </dl>
+      <div class="next-wrap">
+        <p class="label">Up next</p>
+        <div id="next"></div>
+      </div>
+    </div>
+    <section class="map" aria-label="Map of all 120 days">
+      <p class="label">All 120 days</p>
+      <div id="map" class="map"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i></i>Not started</span>
+        <span><i class="l-part"></i>Part done</span>
+        <span><i class="l-done"></i>Done</span>
+        <span><i class="l-review"></i>Review day</span>
+        <span><i class="l-mile"></i>Milestone</span>
+        <span><i class="l-next"></i>Up next</span>
+      </div>
+    </section>
+  </section>
+
+  <section class="wrap list" id="list">
+    <div class="tools">
+      <h2>Every day, phase by phase</h2>
+      <label class="switch" for="hide"><input type="checkbox" id="hide">Hide finished days</label>
+    </div>
+    <div id="phases"></div>
+    <section class="phase" id="projects">
+      <div class="ph-head">
+        <div class="ph-eyebrow"><p class="label">Projects</p><span class="count" id="projCount"></span></div>
+        <h3>Two resume-ready builds</h3>
+        <p>Build milestones to tick as you go. Short on time? Ship one project fully rather than two half-done.</p>
+      </div>
+      <div class="grid projects" id="projectCards"></div>
+    </section>
+  </section>
+  <p class="wrap foot">Review days are not optional. They are why this plan works.</p>
+</main>
+
+<script>
+const DAYS = [
+{"n":1,"title":"COMPLEXITY + HASHING","desc":"Big-O, space complexity, amortized cost, hash map and hash set internals, collisions","tasks":["Learn: Big-O, space, hash table internals","Two Sum","Contains Duplicate","Valid Anagram"]},
+{"n":2,"title":"ARRAYS I","desc":"Traversal, prefix and suffix products, Kadane's algorithm, one-pass thinking","tasks":["Learn: Kadane's algorithm","Best Time to Buy and Sell Stock","Maximum Subarray","Product of Array Except Self"]},
+{"n":3,"title":"ARRAYS II","desc":"In-place modification, rotation, partitioning, Boyer-Moore voting","tasks":["Move Zeroes","Rotate Array","Sort Colors (Dutch flag)","Majority Element"]},
+{"n":4,"title":"STRINGS I","desc":"Frequency arrays, sorting as a key, palindromes, parsing edge cases","tasks":["Group Anagrams","Valid Palindrome","Longest Common Prefix","String to Integer (atoi)"]},
+{"n":5,"title":"HASHING PATTERNS","desc":"Prefix sum + hash map, frequency maps, sets for O(1) lookup, bucket sort","tasks":["Subarray Sum Equals K","Longest Consecutive Sequence","Top K Frequent Elements","Isomorphic Strings"]},
+{"n":6,"title":"TWO POINTERS","desc":"Opposite ends, same direction, fast and slow pointers, dedupe in sorted arrays","tasks":["Two Sum II (sorted input)","3Sum","Container With Most Water","Trapping Rain Water"]},
+{"n":7,"title":"WEEK 1 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":8,"title":"SLIDING WINDOW I","desc":"Fixed window and variable window templates, shrink-while-invalid pattern","tasks":["Longest Substring Without Repeating Chars","Longest Repeating Character Replacement","Max Consecutive Ones III","Permutation in String"]},
+{"n":9,"title":"SLIDING WINDOW II","desc":"Window + hash map, window + deque, minimum-window problems","tasks":["Minimum Window Substring","Minimum Size Subarray Sum","Sliding Window Maximum","Fruit Into Baskets"]},
+{"n":10,"title":"PREFIX SUMS","desc":"1D and 2D prefix sums, difference arrays, range queries","tasks":["Learn: prefix sum + difference array","Range Sum Query - Immutable","Range Sum Query 2D - Immutable","Corporate Flight Bookings"]},
+{"n":11,"title":"MATRIX","desc":"Index mapping, layer-by-layer traversal, in-place marking, simulation","tasks":["Rotate Image","Spiral Matrix","Set Matrix Zeroes","Valid Sudoku"]},
+{"n":12,"title":"BINARY SEARCH I","desc":"Template, lower and upper bound, rotated arrays, search space reasoning","tasks":["Binary Search","Search Insert Position","Search in Rotated Sorted Array","Find Minimum in Rotated Sorted Array"]},
+{"n":13,"title":"BINARY SEARCH ON ANSWER","desc":"Monotonic predicate, min-max problems, 2D search, peaks","tasks":["Koko Eating Bananas","Capacity to Ship Packages","Split Array Largest Sum","Find Peak Element"]},
+{"n":14,"title":"WEEK 2 REVIEW","desc":"MILESTONE: join your first LeetCode contest. Make LeetCode + GitHub profiles.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":15,"title":"SORTING","desc":"Merge sort, quick sort, counting sort, quickselect, stability, custom comparators","tasks":["Code: merge sort and quick sort from scratch","Kth Largest Element in an Array","Merge Intervals","Median of Two Sorted Arrays"]},
+{"n":16,"title":"STRINGS II (ADVANCED)","desc":"KMP, Rabin-Karp, Z-function, expand-around-center, rolling hash","tasks":["Longest Palindromic Substring","Find Index of First Occurrence (KMP)","Palindromic Substrings","Shortest Palindrome"]},
+{"n":17,"title":"MATH + NUMBER THEORY","desc":"GCD and LCM, sieve of Eratosthenes, modular arithmetic, fast power","tasks":["Count Primes","Pow(x, n)","Happy Number","Reverse Integer"]},
+{"n":18,"title":"BIT MANIPULATION","desc":"AND, OR, XOR, shifts, n&(n-1), masks, XOR tricks, bit counting","tasks":["Learn: bit tricks cheat-sheet","Single Number","Counting Bits","Sum of Two Integers"]},
+{"n":19,"title":"LINKED LIST I","desc":"Reversal, dummy node, fast and slow pointer, merging","tasks":["Reverse Linked List","Merge Two Sorted Lists","Linked List Cycle","Middle of the Linked List"]},
+{"n":20,"title":"LINKED LIST II","desc":"Two-pass vs one-pass, in-place reordering, carry handling","tasks":["Remove Nth Node From End","Reorder List","Add Two Numbers","Palindrome Linked List"]},
+{"n":21,"title":"WEEK 3 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":22,"title":"LINKED LIST III","desc":"Deep copy, divide and conquer on lists, k-group reversal, DLL + hash map","tasks":["Copy List with Random Pointer","Merge K Sorted Lists","Reverse Nodes in k-Group","LRU Cache"]},
+{"n":23,"title":"STACK I","desc":"Matching problems, expression evaluation, auxiliary stack","tasks":["Valid Parentheses","Min Stack","Evaluate Reverse Polish Notation","Daily Temperatures"]},
+{"n":24,"title":"MONOTONIC STACK","desc":"Next greater/smaller element, histogram problems, contribution technique","tasks":["Next Greater Element II","Largest Rectangle in Histogram","Sum of Subarray Minimums","Decode String"]},
+{"n":25,"title":"QUEUE + DEQUE","desc":"Queue via stacks and back, circular queue, deque for windows","tasks":["Implement Queue using Stacks","Implement Stack using Queues","Design Circular Queue","Number of Recent Calls"]},
+{"n":26,"title":"RECURSION","desc":"Call stack, recursion tree, base cases, memoization intro, time from recurrence","tasks":["Learn: recursion tree + recurrence relations","Generate Parentheses","Subsets","Letter Combinations of a Phone Number"]},
+{"n":27,"title":"BACKTRACKING I","desc":"Choose-explore-unchoose, duplicates handling, pruning","tasks":["Permutations","Combination Sum","Combination Sum II","Subsets II"]},
+{"n":28,"title":"WEEK 4 REVIEW","desc":"MILESTONE: Resume v1 ready. Ask 3 seniors for referrals.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":29,"title":"BACKTRACKING II","desc":"Grid backtracking, constraint problems, partitioning","tasks":["Word Search","Palindrome Partitioning","N-Queens","Sudoku Solver"]},
+{"n":30,"title":"BINARY TREES I","desc":"Preorder, inorder, postorder (recursive and iterative), tree recursion basics","tasks":["Maximum Depth of Binary Tree","Invert Binary Tree","Same Tree","Binary Tree Inorder Traversal (iterative)"]},
+{"n":31,"title":"BINARY TREES II (DFS)","desc":"Return-value recursion, height and diameter patterns, path problems","tasks":["Diameter of Binary Tree","Balanced Binary Tree","Subtree of Another Tree","Count Good Nodes in Binary Tree"]},
+{"n":32,"title":"BINARY TREES III (BFS)","desc":"Level order, queue size trick, zigzag, side views, next pointers","tasks":["Binary Tree Level Order Traversal","Zigzag Level Order Traversal","Binary Tree Right Side View","Populating Next Right Pointers"]},
+{"n":33,"title":"TREES IV: LCA + BUILD","desc":"Lowest common ancestor, tree construction, serialization, flattening","tasks":["Lowest Common Ancestor of a Binary Tree","Construct Tree from Preorder and Inorder","Flatten Binary Tree to Linked List","Serialize and Deserialize Binary Tree"]},
+{"n":34,"title":"TREES V (HARD)","desc":"Global answer vs returned value, tree DP, cameras, vertical traversal","tasks":["Binary Tree Maximum Path Sum","House Robber III","Binary Tree Cameras","Vertical Order Traversal of a Binary Tree"]},
+{"n":35,"title":"WEEK 5 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":36,"title":"BST I","desc":"BST property, inorder gives sorted order, bounds-based validation","tasks":["Validate Binary Search Tree","Kth Smallest Element in a BST","LCA of a BST","Convert Sorted Array to BST"]},
+{"n":37,"title":"BST II","desc":"Insert, delete, iterator design, recovering a corrupted BST","tasks":["Delete Node in a BST","Binary Search Tree Iterator","Recover Binary Search Tree","Two Sum IV (Input is a BST)"]},
+{"n":38,"title":"HEAPS I","desc":"Heap internals, heapify, priority queue API, top-K pattern","tasks":["Kth Largest Element in a Stream","Last Stone Weight","K Closest Points to Origin","Top K Frequent Words"]},
+{"n":39,"title":"HEAPS II","desc":"Two heaps, greedy with heap, scheduling, rearrangement","tasks":["Find Median from Data Stream","Task Scheduler","Reorganize String","Meeting Rooms II"]},
+{"n":40,"title":"HEAPS III","desc":"K-way merge, heap on sorted matrices, heap + greedy selection","tasks":["Ugly Number II","Find K Pairs with Smallest Sums","Kth Smallest Element in a Sorted Matrix","IPO"]},
+{"n":41,"title":"GRAPHS I: BASICS","desc":"Adjacency list vs matrix, BFS, DFS, connected components, visited handling","tasks":["Number of Islands","Clone Graph","Max Area of Island","Find if Path Exists in Graph"]},
+{"n":42,"title":"WEEK 6 REVIEW","desc":"MILESTONE: Start 1 mock interview per week (Pramp / peers).","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":43,"title":"GRAPHS II: GRIDS","desc":"Multi-source BFS, boundary DFS, reverse thinking","tasks":["Rotting Oranges","01 Matrix","Pacific Atlantic Water Flow","Surrounded Regions"]},
+{"n":44,"title":"GRAPHS III: BFS PATHS","desc":"Shortest path in unweighted graphs, state-space BFS, implicit graphs","tasks":["Word Ladder","Shortest Path in Binary Matrix","Open the Lock","Snakes and Ladders"]},
+{"n":45,"title":"TOPOLOGICAL SORT","desc":"Kahn's algorithm, DFS ordering, dependency resolution, cycle detection","tasks":["Course Schedule","Course Schedule II","Alien Dictionary (GfG)","Minimum Height Trees"]},
+{"n":46,"title":"CYCLES + BIPARTITE","desc":"Directed vs undirected cycle detection, coloring, safe states","tasks":["Is Graph Bipartite?","Graph Valid Tree (or GfG)","Find Eventual Safe States","Detect Cycle in a Directed Graph (GfG)"]},
+{"n":47,"title":"UNION FIND (DSU)","desc":"Path compression, union by rank, component counting, grouping","tasks":["Number of Provinces","Redundant Connection","Accounts Merge","Most Stones Removed"]},
+{"n":48,"title":"SHORTEST PATHS","desc":"Dijkstra, Bellman-Ford, Floyd-Warshall, constrained paths","tasks":["Network Delay Time","Cheapest Flights Within K Stops","Path With Minimum Effort","Learn: Floyd-Warshall (GfG)"]},
+{"n":49,"title":"WEEK 7 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":50,"title":"MST + ADVANCED GRAPHS","desc":"Prim, Kruskal, bridges and articulation points, Euler paths","tasks":["Min Cost to Connect All Points","Critical Connections in a Network","Reconstruct Itinerary","Learn: Kruskal vs Prim"]},
+{"n":51,"title":"TRIES","desc":"Prefix tree, insert and search, wildcard search, trie + DFS","tasks":["Implement Trie","Design Add and Search Words","Word Search II","Replace Words"]},
+{"n":52,"title":"DP I: 1D BASICS","desc":"State definition, transitions, memoization vs tabulation, space optimization","tasks":["Learn: the 5-step DP framework","Climbing Stairs","House Robber and House Robber II","Min Cost Climbing Stairs"]},
+{"n":53,"title":"DP II: 1D CLASSICS","desc":"Unbounded choices, subsequences, partition into words","tasks":["Coin Change","Longest Increasing Subsequence (O(n log n))","Word Break","Decode Ways"]},
+{"n":54,"title":"DP III: KNAPSACK","desc":"0/1 knapsack, unbounded knapsack, subset sum, counting ways","tasks":["Partition Equal Subset Sum","Target Sum","Coin Change II","Last Stone Weight II"]},
+{"n":55,"title":"DP IV: GRID","desc":"Path counting, min path sum, square and rectangle DP","tasks":["Unique Paths","Minimum Path Sum","Maximal Square","Triangle"]},
+{"n":56,"title":"WEEK 8 REVIEW","desc":"MILESTONE: Apply to 5 warm-up companies to practise real rounds.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":57,"title":"DP V: STRINGS","desc":"LCS family, edit distance, palindromic subsequences","tasks":["Longest Common Subsequence","Edit Distance","Distinct Subsequences","Longest Palindromic Subsequence"]},
+{"n":58,"title":"DP VI: STRINGS (HARD)","desc":"Pattern matching DP, interleaving, partition DP","tasks":["Regular Expression Matching","Wildcard Matching","Interleaving String","Palindrome Partitioning II"]},
+{"n":59,"title":"DP VII: STATE MACHINE","desc":"Stock series, holding states, Kadane variants","tasks":["Stock with Cooldown","Stock with Transaction Fee","Best Time to Buy and Sell Stock IV","Maximum Product Subarray"]},
+{"n":60,"title":"DP VIII: INTERVAL + HARD","desc":"Interval DP, memoized DFS on matrices, optimization on DP","tasks":["Burst Balloons","Minimum Cost to Cut a Stick","Longest Increasing Path in a Matrix","Super Egg Drop"]},
+{"n":61,"title":"DP IX: BITMASK","desc":"Subset states with bitmasks, TSP-style problems, assignment problems","tasks":["Learn: bitmask DP template","Partition to K Equal Sum Subsets","Shortest Path Visiting All Nodes","Beautiful Arrangement"]},
+{"n":62,"title":"GREEDY I","desc":"Exchange argument, reachability, sorting + greedy","tasks":["Jump Game","Jump Game II","Gas Station","Hand of Straights"]},
+{"n":63,"title":"WEEK 9 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":64,"title":"GREEDY II + INTERVALS","desc":"Sweep line, interval merging and removal, scheduling","tasks":["Non-overlapping Intervals","Insert Interval","Partition Labels","Minimum Number of Arrows to Burst Balloons"]},
+{"n":65,"title":"ADVANCED STRUCTURES","desc":"Segment tree, Fenwick tree (BIT), range queries with updates","tasks":["Learn: segment tree + BIT basics","Range Sum Query - Mutable","Count of Smaller Numbers After Self","Reverse Pairs"]},
+{"n":66,"title":"DESIGN DATA STRUCTURES","desc":"Combining structures for O(1) operations, TTL, eviction","tasks":["Design HashMap","Time Based Key-Value Store","Insert Delete GetRandom O(1)","LFU Cache"]},
+{"n":67,"title":"GOOGLE-STYLE HARD I","desc":"Array tricks in O(1) space, cycle detection on arrays, layered thinking","tasks":["First Missing Positive","Find the Duplicate Number","Trapping Rain Water II","Word Break II"]},
+{"n":68,"title":"GOOGLE-STYLE HARD II","desc":"Heaps + windows, stack + DP, geometry, greedy with two passes","tasks":["Sliding Window Median","Longest Valid Parentheses","Max Points on a Line","Candy"]},
+{"n":69,"title":"SAMSUNG-STYLE: SIMULATION","desc":"Implementation speed, grid simulation, direction arrays, careful state updates","tasks":["Robot Bounded In Circle","Spiral Matrix II","Walking Robot Simulation","Minesweeper"]},
+{"n":70,"title":"WEEK 10 REVIEW","desc":"MILESTONE: DSA done. Switch fully to CS + design. Keep 1 problem/day.","tasks":["Re-solve 3 problems you got wrong or needed hints for","Write 1-page notes: pattern template + when to use","Timed practice: 2 mediums in 60 minutes","Update tracker, plan next week, rest well"]},
+{"n":71,"title":"TIMED OA SIMULATION","desc":"Full online-assessment conditions: 90 min, 3 problems, no hints","tasks":["LeetCode virtual contest (or Codeforces Div 2)","Upsolve every unsolved problem","Write the pattern behind each miss","Re-solve the hardest one tomorrow"]},
+{"n":72,"title":"COMPANY-TAGGED SETS","desc":"Most frequent questions asked by target companies in the last year","tasks":["Google-tagged: solve 2 most frequent","Paytm-tagged: solve 2 most frequent","Samsung / Amazon-tagged: solve 2","Note common patterns across them"]},
+{"n":73,"title":"OS I: PROCESSES + SCHEDULING","desc":"Process vs thread, PCB, context switch, FCFS, SJF, Round Robin, priority, IPC","tasks":["Study: process vs thread, context switch","Study: CPU scheduling algorithms","Solve: 3 scheduling numericals","Write: 5 interview Q&As in own words"]},
+{"n":74,"title":"OS II: SYNC + DEADLOCK","desc":"Race conditions, mutex, semaphore, monitor, classic sync problems, Banker's algorithm","tasks":["Study: mutex vs semaphore vs monitor","Code: producer-consumer, readers-writers","Study: deadlock conditions + prevention","Write: dining philosophers explanation"]},
+{"n":75,"title":"OS III: MEMORY","desc":"Paging, segmentation, virtual memory, TLB, page replacement (FIFO, LRU, OPT), thrashing","tasks":["Study: paging, segmentation, virtual memory","Solve: 3 page replacement problems","Study: TLB, page faults, thrashing","Study: file system basics, inodes"]},
+{"n":76,"title":"DBMS I: DESIGN + ACID","desc":"ER model, keys, normalization (1NF to BCNF), transactions, ACID, schedules","tasks":["Study: ER model + keys","Study: normalization with examples","Study: ACID + serializability","Design: schema for e-commerce orders"]},
+{"n":77,"title":"WEEK 11 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Explain this week's topics aloud for 10 min, no notes","Make a 1-page cheat sheet: definitions + diagrams","Answer 10 rapid-fire interview questions from memory","Update tracker, plan next week, rest well"]},
+{"n":78,"title":"DBMS II: SQL","desc":"Joins, group by, having, subqueries, CTEs, window functions, ranking","tasks":["Solve: Second Highest Salary","Solve: Department Top Three Salaries","Solve: Consecutive Numbers","Solve: Rank Scores + Trips and Users"]},
+{"n":79,"title":"DBMS III: INTERNALS","desc":"B+ tree indexes, clustered vs non-clustered, isolation levels, MVCC, query plans, NoSQL types","tasks":["Study: B+ tree index and when it helps","Study: isolation levels + anomalies","Study: EXPLAIN, slow query tuning","Study: SQL vs NoSQL, CAP intro"]},
+{"n":80,"title":"NETWORKS I: CORE","desc":"OSI vs TCP/IP, TCP vs UDP, 3-way handshake, flow and congestion control, DNS, IP, NAT","tasks":["Study: OSI and TCP/IP layers","Study: TCP handshake, flow, congestion","Study: DNS resolution step by step","Write: TCP vs UDP with use cases"]},
+{"n":81,"title":"NETWORKS II: WEB","desc":"HTTP/1.1, 2, 3, HTTPS and TLS, cookies, sessions, JWT, CORS, REST, load balancers","tasks":["Study: HTTP versions + status codes","Study: TLS handshake, certificates","Study: sessions vs JWT, CORS, CSRF, XSS","Write: what happens when you type a URL"]},
+{"n":82,"title":"OOP + LANGUAGE DEEP DIVE","desc":"Four pillars, interface vs abstract class, vtable, GC, HashMap internals, exceptions","tasks":["Study: OOP pillars with real examples","Study: HashMap/dictionary internals","Study: memory model, GC, references","Write: 10 language-specific Q&As"]},
+{"n":83,"title":"CONCURRENCY","desc":"Threads, thread pools, locks, atomics, volatile, deadlocks, thread-safe design","tasks":["Code: thread-safe singleton","Code: blocking queue producer-consumer","Code: thread-safe rate limiter","Study: executor services and futures"]},
+{"n":84,"title":"WEEK 12 REVIEW","desc":"MILESTONE: Machine coding in 90 minutes without hints.","tasks":["Explain this week's topics aloud for 10 min, no notes","Make a 1-page cheat sheet: definitions + diagrams","Answer 10 rapid-fire interview questions from memory","Update tracker, plan next week, rest well"]},
+{"n":85,"title":"OOD + SOLID","desc":"SOLID with code, UML class and sequence diagrams, composition over inheritance","tasks":["Study: all 5 SOLID principles with code","Draw: class diagram for a library system","Study: how to approach machine coding","Refactor: a messy class using SOLID"]},
+{"n":86,"title":"DESIGN PATTERNS I","desc":"Singleton, Factory, Abstract Factory, Builder, Adapter, Decorator, Facade, Proxy","tasks":["Code: Factory + Abstract Factory","Code: Builder + Singleton (thread-safe)","Code: Decorator + Adapter","Write: when NOT to use each pattern"]},
+{"n":87,"title":"DESIGN PATTERNS II","desc":"Observer, Strategy, State, Command, Chain of Responsibility, Template Method","tasks":["Code: Observer (notification system)","Code: Strategy (pricing/payment)","Code: State (vending machine states)","Code: Command + Chain of Responsibility"]},
+{"n":88,"title":"MACHINE CODING I","desc":"Parking Lot: entities, pricing strategy, slot allocation, extensibility","tasks":["Requirements + entities + class diagram (15 min)","Code Parking Lot, runnable (75 min)","Add one extension without rewriting","Write 5 unit tests, then refactor"]},
+{"n":89,"title":"MACHINE CODING II","desc":"Splitwise: balance simplification, split strategies; Tic-Tac-Toe / Snake and Ladder","tasks":["Code Splitwise (equal, exact, percent splits)","Code Snake and Ladder, 90 min timed","Handle concurrency + invalid inputs","Compare your design with a reference"]},
+{"n":90,"title":"MACHINE CODING III","desc":"Elevator system scheduling, Vending Machine / ATM with State pattern","tasks":["Code Elevator system (request scheduling)","Code Vending Machine with State pattern","Add logging + error handling","Review: coupling and cohesion"]},
+{"n":91,"title":"WEEK 13 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Explain this week's topics aloud for 10 min, no notes","Make a 1-page cheat sheet: definitions + diagrams","Answer 10 rapid-fire interview questions from memory","Update tracker, plan next week, rest well"]},
+{"n":92,"title":"MACHINE CODING IV","desc":"BookMyShow seat locking, in-memory LRU cache, rate limiter library, pub-sub","tasks":["Code BookMyShow (seat lock + timeout)","Code in-memory cache with eviction policy","Code pub-sub / rate limiter library","Write 5 follow-up Qs and your answers"]},
+{"n":93,"title":"HLD FUNDAMENTALS I","desc":"Scalability, latency vs throughput, availability, SLA/SLO, back-of-envelope estimation","tasks":["Study: vertical vs horizontal scaling","Study: availability nines, SLA, SLO","Solve: 5 QPS/storage estimates","Study: latency numbers every dev knows"]},
+{"n":94,"title":"HLD FUNDAMENTALS II","desc":"CAP, PACELC, consistency models, load balancers (L4/L7), proxies, health checks","tasks":["Study: CAP and PACELC with examples","Study: strong vs eventual vs causal","Study: L4 vs L7, LB algorithms","Study: forward vs reverse proxy"]},
+{"n":95,"title":"CACHING + CDN","desc":"Cache-aside, write-through, write-back, eviction, Redis, CDN, stampede, invalidation","tasks":["Study: caching strategies + trade-offs","Study: Redis structures, persistence, cluster","Study: CDN push vs pull","Write: cache stampede + hot key fixes"]},
+{"n":96,"title":"DATABASES I","desc":"SQL vs NoSQL, B-tree vs LSM, indexing, replication, leader-follower, read replicas","tasks":["Study: choosing a database for a use case","Study: B-tree vs LSM tree","Study: replication lag + failover","Study: Cassandra, DynamoDB, MongoDB basics"]},
+{"n":97,"title":"DATABASES II","desc":"Sharding, partitioning, consistent hashing, hot keys, 2PC, saga, Bloom filters","tasks":["Study: sharding strategies + resharding","Code: consistent hashing ring","Study: 2PC vs saga pattern","Study: Bloom filter use cases"]},
+{"n":98,"title":"WEEK 14 REVIEW","desc":"MILESTONE: Apply to target companies with referrals.","tasks":["Explain this week's topics aloud for 10 min, no notes","Make a 1-page cheat sheet: definitions + diagrams","Answer 10 rapid-fire interview questions from memory","Update tracker, plan next week, rest well"]},
+{"n":99,"title":"APIS + REAL-TIME","desc":"REST, gRPC, GraphQL, pagination, versioning, idempotency, WebSockets, SSE, rate limiting","tasks":["Study: REST vs gRPC vs GraphQL","Study: idempotency keys + retries","Study: WebSocket vs SSE vs long polling","Code: token bucket + sliding window limiter"]},
+{"n":100,"title":"MESSAGING + ASYNC","desc":"Queues vs streams, Kafka internals, delivery semantics, outbox, DLQ, backpressure","tasks":["Study: Kafka topics, partitions, offsets","Study: at-least/at-most/exactly-once","Study: outbox pattern, DLQ, retries","Compare: Kafka vs RabbitMQ vs SQS"]},
+{"n":101,"title":"RELIABILITY + MICROSERVICES","desc":"Microservices, API gateway, service discovery, circuit breaker, observability, Snowflake IDs, Raft","tasks":["Study: monolith vs microservices trade-offs","Study: circuit breaker, bulkhead, retries","Study: metrics, logs, traces, alerts","Study: Snowflake IDs, leader election"]},
+{"n":102,"title":"DESIGN I: URL SHORTENER","desc":"Requirements, estimates, key generation, schema, caching, analytics; Pastebin","tasks":["Design: URL Shortener (45 min, whiteboard)","Design: Pastebin (45 min)","Deep dive: key generation + collisions","Compare against a reference solution"]},
+{"n":103,"title":"DESIGN II: LIMITER + KV STORE","desc":"Distributed rate limiter, Dynamo-style key-value store, replication, quorum","tasks":["Design: distributed rate limiter","Design: key-value store (Dynamo-style)","Deep dive: quorum, gossip, conflict resolution","Write: 3 trade-offs you made and why"]},
+{"n":104,"title":"DESIGN III: NOTIFY + SEARCH","desc":"Notification system, typeahead, web crawler, fan-out, ranking, politeness","tasks":["Design: notification system (push, SMS, email)","Design: typeahead / autocomplete","Design: web crawler","Deep dive: dedupe, retries, prioritization"]},
+{"n":105,"title":"WEEK 15 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Explain this week's topics aloud for 10 min, no notes","Make a 1-page cheat sheet: definitions + diagrams","Answer 10 rapid-fire interview questions from memory","Update tracker, plan next week, rest well"]},
+{"n":106,"title":"DESIGN IV: CHAT + FEED","desc":"WhatsApp-style chat, presence, delivery receipts, news feed, fan-out on write vs read","tasks":["Design: WhatsApp / chat system","Design: Twitter / Instagram news feed","Deep dive: fan-out, celebrity problem","Handle follow-ups: 10x scale, failures"]},
+{"n":107,"title":"DESIGN V: PAYMENTS (PAYTM)","desc":"UPI flow, wallet ledger, double-entry bookkeeping, idempotency, reconciliation, fraud","tasks":["Design: payments and wallet system","Design: flash-sale / inventory system","Deep dive: idempotency + exactly-once money movement","Deep dive: ledger, reconciliation, audit"]},
+{"n":108,"title":"DESIGN VI: MEDIA + STORAGE","desc":"Video upload and streaming pipeline, CDN, transcoding, file sync, chunking, deduplication","tasks":["Design: YouTube / Netflix","Design: Dropbox / Google Drive","Deep dive: chunking, sync, conflict handling","Deep dive: storage cost + CDN strategy"]},
+{"n":109,"title":"DESIGN VII: GEO + BOOKING","desc":"Ride sharing, geohash and quadtree, matching, ticket booking with seat locks","tasks":["Design: Uber / ride sharing","Design: BookMyShow / Ticketmaster","Deep dive: geospatial index, matching","Deep dive: seat locking, double-booking"]},
+{"n":110,"title":"DESIGN VIII: COLLAB + SCALE","desc":"Google Docs (OT vs CRDT), distributed job scheduler, search basics, LLM chat service","tasks":["Design: Google Docs (OT vs CRDT)","Design: distributed job scheduler","Design: search engine basics (index, rank)","Design: LLM chat / RAG service (bonus)"]},
+{"n":111,"title":"RESUME + PROFILES","desc":"Impact bullets (X by Y via Z), ATS keywords, LinkedIn, GitHub, one-page rule","tasks":["Rewrite resume with measurable impact","Update LinkedIn + GitHub profile","List 10 target companies by tier","Ask 5 people for referrals (message drafted)"]},
+{"n":112,"title":"WEEK 16 REVIEW","desc":"MILESTONE: 2 full mock loops done. Fix weak topics only.","tasks":["Redo your weakest mock or problem set","Write feedback from this week's mocks","Revise cheat sheets: patterns, CS, design","Update tracker, plan next week, rest well"]},
+{"n":113,"title":"PROJECT DEEP DIVES","desc":"Architecture, scale, bottlenecks, failures, trade-offs for your 2 best projects","tasks":["Draw architecture diagram for project 1","Draw architecture diagram for project 2","Prepare 10 hard questions per project","Mock grill: a friend interrogates you"]},
+{"n":114,"title":"BEHAVIOURAL I","desc":"STAR method, conflict, failure, leadership, ambiguity, deadlines, ownership","tasks":["Write 8 STAR stories (one page each)","Map stories to Amazon Leadership Principles","Prepare Googleyness-style answers","Practice aloud: 3 stories, 2 min each"]},
+{"n":115,"title":"BEHAVIOURAL II + HR","desc":"Why this company, why leave, salary negotiation, notice period, counter offers","tasks":["Research Google, Paytm, Samsung: products, news","Prepare 'why this company' for each","Prepare salary + notice period answers","Prepare 5 smart questions to ask interviewers"]},
+{"n":116,"title":"COMPANY-SPECIFIC PREP","desc":"Round formats, past experiences, focus areas, common questions per target company","tasks":["Read 10 recent interview experiences: Google","Read 10 recent interview experiences: Paytm","Read 10 recent interview experiences: Samsung","Build a company-wise weak-spot checklist"]},
+{"n":117,"title":"MOCK INTERVIEWS I","desc":"Two DSA mocks with strangers or peers, thinking aloud, communication, testing","tasks":["Mock DSA round 1 (Pramp / peer)","Mock DSA round 2 (Interviewing.io / peer)","Collect written feedback on both","Fix the top 3 feedback items today"]},
+{"n":118,"title":"MOCK INTERVIEWS II","desc":"One machine coding and one system design mock under real time limits","tasks":["Mock machine coding (90 min, peer reviews)","Mock system design (45 min, peer grills)","Review recordings: pace, clarity, gaps","Patch the 3 biggest weak topics"]},
+{"n":119,"title":"WEEK 17 REVIEW","desc":"Spaced repetition: revisit weak spots before they fade. Rest is part of the plan.","tasks":["Redo your weakest mock or problem set","Write feedback from this week's mocks","Revise cheat sheets: patterns, CS, design","Update tracker, plan next week, rest well"]},
+{"n":120,"title":"LAUNCH DAY","desc":"You are ready to interview. Keep momentum: 1 mock + 2 problems daily until offers.","tasks":["Final pass: pattern notes, CS sheet, design sheet","Finalize 8 STAR stories and 2 project deep dives","Apply with referrals: Google, Paytm, Samsung + 10 more","Schedule next 4 weeks of mocks and interviews"]}
+];
+
+const PHASES = [
+  { n: 1, from: 1, to: 18, name: 'Foundations: Arrays to Bits', blurb: 'Build pattern recognition on the most-tested basics: hashing, two pointers, windows, binary search, sorting, bits.' },
+  { n: 2, from: 19, to: 40, name: 'Core Structures: Lists, Stacks, Trees, Heaps', blurb: 'Master pointer manipulation, recursion, backtracking, trees, BSTs and heaps. This is where most interview questions live.' },
+  { n: 3, from: 41, to: 72, name: 'Advanced DSA: Graphs, DP, Greedy, Hard Mixed', blurb: 'The Google-level toolkit: graphs, shortest paths, DP in all its forms, greedy, advanced structures and company-style sets.' },
+  { n: 4, from: 73, to: 84, name: 'CS Fundamentals: OS, DBMS, Networks, OOP', blurb: 'Samsung, Paytm and many others grill you on fundamentals. Learn them well enough to explain with examples.' },
+  { n: 5, from: 85, to: 92, name: 'Low-Level Design and Machine Coding', blurb: 'Write clean, extensible, runnable code in 60 to 90 minutes. Essential for Paytm, Flipkart, Swiggy, Uber and similar rounds.' },
+  { n: 6, from: 93, to: 110, name: 'High-Level System Design', blurb: 'Learn the building blocks, then design 15+ real systems with estimates, trade-offs and failure handling.' },
+  { n: 7, from: 111, to: 120, name: 'Career, Projects, Behavioural and Mocks', blurb: 'Convert skill into offers: resume, projects, STAR stories, company research, mocks and applications.' },
+];
+
+const PROJECTS = [
+  {
+    n: 1, name: 'PayFlow', sub: 'a Wallet and Payments Backend',
+    plan: 'Build on weekends from Day 35, about 6 weekends. Minimum viable: M1 to M4.',
+    tasks: [
+      'M1 Auth with JWT, user + wallet creation, add money, balance and history APIs.',
+      'M2 Transfers with a double-entry ledger inside ACID transactions. Prevent races with row locks or optimistic versioning.',
+      'M3 Idempotency keys, safe retries, payment state machine (INITIATED, PENDING, SUCCESS, FAILED, REVERSED).',
+      'M4 Kafka events for notifications and async reconciliation. Add retries with backoff and a dead-letter queue.',
+      'M5 Redis rate limiting, simple fraud rules (velocity limits, amount caps), and an admin audit endpoint.',
+      'M6 Tests incl. 100+ concurrent transfers, k6 load test, metrics dashboard, README with architecture diagram, live demo.',
+    ],
+  },
+  {
+    n: 2, name: 'CollabDocs', sub: 'a Real-Time Collaborative Editor',
+    plan: 'Build on weekends from Day 77, about 4 weekends. Minimum viable: M1 to M4.',
+    tasks: [
+      'M1 Auth, document CRUD, and a rich-text editor with autosave.',
+      'M2 Two clients editing the same doc over WebSockets, with live cursors and presence.',
+      'M3 Conflict-free merging with a CRDT (Yjs). Write a 1-page note comparing CRDT vs OT and why you chose one.',
+      'M4 Persistence: append-only op log plus periodic snapshots. Offline edits that sync on reconnect.',
+      'M5 Run 3+ server instances with Redis pub/sub. Load-test with 500+ simulated clients and record results.',
+      'M6 Share links with view / comment / edit roles, version history, tests, CI, README with diagrams, live demo.',
+    ],
+  },
+];
+
+const STORE_KEY = 'service-to-product.v1';
+const HIDE_KEY = 'service-to-product.hide-done';
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const dayId = (n, i) => `d${String(n).padStart(3, '0')}-${i + 1}`;
+const projId = (n, i) => `p${n}-${i + 1}`;
+const isReview = d => d.title.includes('REVIEW');
+const isMilestone = d => d.desc.startsWith('MILESTONE:');
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOTAL_DAILY = DAYS.reduce((sum, d) => sum + d.tasks.length, 0);
+const TOTAL_PROJ = PROJECTS.reduce((sum, p) => sum + p.tasks.length, 0);
+
+/* ---------- Ticks: kept here first, then sent to the signed-in viewer's own store ---------- */
+
+let ticks = {};    // box id -> true
+let unsent = {};   // box id -> true/false, changes the store has not confirmed yet
+let docRef = null;
+let docExists = false;
+let sending = false;
+let sendTimer = null;
+let failures = 0;
+
+function loadLocal() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+    ticks = saved.ticks || {};
+    unsent = saved.unsent || {};
+  } catch { /* storage blocked: start empty */ }
+}
+function saveLocal() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ ticks, unsent })); } catch { /* storage blocked */ }
+}
+
+const STATUS = {
+  connecting: ['Connecting…', 'wait'],
+  saving: ['Saving…', 'wait'],
+  saved: ['Saved', 'ok'],
+  retrying: ['Not saved yet, retrying', 'warn'],
+  stale: ['Can’t reach your saved progress yet', 'warn'],
+  local: ['This browser only', 'warn'],
+};
+function setStatus(name) {
+  const [text, tone] = STATUS[name];
+  $('statusText').textContent = text;
+  $('status').dataset.tone = tone;
+  $('notice').hidden = name !== 'local';
+}
+
+function setTick(id, on) {
+  if (on) ticks[id] = true; else delete ticks[id];
+  unsent[id] = on;
+  saveLocal();
+  paint();
+  if (docRef) { setStatus('saving'); sendSoon(300); }
+}
+
+function sendSoon(ms) {
+  clearTimeout(sendTimer);
+  sendTimer = setTimeout(send, ms);
+}
+
+async function write(batch) {
+  if (!docExists) {
+    const snap = await docRef.get();
+    docExists = snap.exists;
+  }
+  if (docExists) return docRef.update({ ticks: batch });
+  await docRef.set({ ticks: { ...ticks, ...batch } });
+  docExists = true;
+}
+
+// One write at a time: a burst of ticks becomes one merge of just the changed boxes
+async function send() {
+  if (!docRef || sending || !Object.keys(unsent).length) return;
+  sending = true;
+  const batch = { ...unsent };
+  try {
+    await write(batch);
+    for (const id in batch) if (unsent[id] === batch[id]) delete unsent[id];
+    saveLocal();
+    failures = 0;
+    sending = false;
+    if (Object.keys(unsent).length) sendSoon(300); else setStatus('saved');
+  } catch (e) {
+    sending = false;
+    if (['unavailable', 'resource_exhausted'].includes(e && e.code)) {
+      setStatus('retrying');
+      failures++;
+      sendSoon(Math.min(30000, 1500 * 2 ** failures));
+    } else {
+      useLocalOnly();
+    }
+  }
+}
+
+function useLocalOnly() {
+  docRef = null;
+  setStatus('local');
+}
+
+async function connect() {
+  if (!window.claude || !window.claude.use) return useLocalOnly();
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    const uid = user ? await user.id() : null;
+    if (!db || !uid) return useLocalOnly();
+    docRef = db.doc(`data/users/${uid}/progress`);
+    const slow = setTimeout(() => setStatus('stale'), 10000);
+    docRef.onSnapshot(snap => {
+      if (snap.exists) docExists = true;
+      if (snap.metadata.fromCache && !snap.exists) return;
+      if (!snap.metadata.fromCache) clearTimeout(slow);
+      const stored = (snap.exists && snap.data().ticks) || {};
+      const merged = { ...stored, ...unsent };
+      ticks = {};
+      for (const id in merged) if (merged[id]) ticks[id] = true;
+      saveLocal();
+      paint();
+      if (Object.keys(unsent).length) { setStatus('saving'); send(); }
+      else if (!snap.metadata.fromCache) setStatus('saved');
+    }, () => { clearTimeout(slow); useLocalOnly(); });
+  } catch {
+    useLocalOnly();
+  }
+}
+
+/* ---------- Page ---------- */
+
+function taskText(t) {
+  const m = t.match(/^(Learn|Study|Code|Solve|Write|Design|Draw|Deep dive|Compare|Refactor|M[1-6]):?\s(.*)$/);
+  return m ? `<b>${esc(m[1])}${m[1].startsWith('M') && m[1].length === 2 ? '' : ':'}</b> ${esc(m[2])}` : esc(t);
+}
+
+function box(prefix, id, text) {
+  return `<li class="task"><label for="${prefix}${id}"><input type="checkbox" id="${prefix}${id}" data-t="${id}"><span>${taskText(text)}</span></label></li>`;
+}
+
+function dayCard(d, prefix) {
+  const kind = isReview(d) ? ' review' : '';
+  const body = isMilestone(d)
+    ? `<p class="flag">${esc(d.desc)}</p>`
+    : `<p class="desc">${esc(d.desc)}</p>`;
+  return `<article class="day${kind}" data-day="${d.n}">
+    <div class="day-head"><span class="n">DAY ${String(d.n).padStart(2, '0')}</span><h3>${esc(d.title)}</h3><span class="count"></span></div>
+    <div class="day-body">${body}<ul>${d.tasks.map((t, i) => box(prefix, dayId(d.n, i), t)).join('')}</ul></div>
+  </article>`;
+}
+
+function projectCard(p) {
+  return `<article class="day big" data-project="${p.n}">
+    <div class="day-head"><span class="n">PROJECT ${p.n}</span><h3>${esc(p.name)}, ${esc(p.sub)}</h3><span class="count"></span></div>
+    <div class="day-body"><p class="desc">${esc(p.plan)}</p><ul>${p.tasks.map((t, i) => box('', projId(p.n, i), t)).join('')}</ul></div>
+  </article>`;
+}
+
+function build() {
+  $('map').innerHTML = PHASES.map(p => `
+    <div class="map-row">
+      <div class="map-head"><span>Phase ${p.n} <em>${esc(p.name.split(':')[0])}</em></span><span class="count" data-phase-count="${p.n}"></span></div>
+      <div class="cells">${DAYS.slice(p.from - 1, p.to).map(d => {
+        const cls = (isReview(d) ? ' review' : '') + (isMilestone(d) ? ' milestone' : '');
+        return `<button class="cell${cls}" type="button" data-go="${d.n}">${d.n}</button>`;
+      }).join('')}</div>
+    </div>`).join('');
+
+  $('phases').innerHTML = PHASES.map(p => `
+    <section class="phase" data-phase="${p.n}">
+      <div class="ph-head">
+        <div class="ph-eyebrow"><p class="label">Phase ${p.n} | Days ${p.from} to ${p.to}</p><span class="count" data-phase-count="${p.n}"></span></div>
+        <h3>${esc(p.name)}</h3>
+        <p>${esc(p.blurb)}</p>
+      </div>
+      <div class="grid">${DAYS.slice(p.from - 1, p.to).map(d => dayCard(d, '')).join('')}</div>
+    </section>`).join('');
+
+  $('projectCards').innerHTML = PROJECTS.map(projectCard).join('');
+}
+
+let heroDay;
+let heroTimer = null;
+
+function firstOpenDay() {
+  const d = DAYS.find(d => d.tasks.some((_, i) => !ticks[dayId(d.n, i)]));
+  return d ? d.n : 0;
+}
+
+function renderHero() {
+  const d = DAYS[heroDay - 1];
+  $('next').innerHTML = d
+    ? `<div class="big">${dayCard(d, 'next-')}</div>`
+    : `<p class="alldone">All 120 days done. Keep momentum: 1 mock + 2 problems daily until offers.</p>`;
+  $('jump').hidden = !d;
+  if (d) $('jump').textContent = `Day ${d.n}`;
+}
+
+function paint() {
+  document.querySelectorAll('input[data-t]').forEach(b => { b.checked = !!ticks[b.dataset.t]; });
+
+  const next = firstOpenDay();
+  let daily = 0, daysDone = 0;
+  const perDay = {};
+  for (const d of DAYS) {
+    const done = d.tasks.filter((_, i) => ticks[dayId(d.n, i)]).length;
+    perDay[d.n] = done;
+    daily += done;
+    if (done === d.tasks.length) daysDone++;
+  }
+
+  document.querySelectorAll('.day[data-day]').forEach(card => {
+    const d = DAYS[card.dataset.day - 1];
+    card.classList.toggle('done', perDay[d.n] === d.tasks.length);
+    card.querySelector('.count').textContent = `${perDay[d.n]}/${d.tasks.length}`;
+  });
+  document.querySelectorAll('.cell').forEach(cell => {
+    const d = DAYS[cell.dataset.go - 1];
+    const done = perDay[d.n];
+    cell.style.setProperty('--f', done / d.tasks.length);
+    cell.classList.toggle('full', done === d.tasks.length);
+    cell.classList.toggle('next', d.n === next);
+    cell.setAttribute('aria-label', `Day ${d.n}, ${d.title.toLowerCase()}, ${done} of ${d.tasks.length} done`);
+  });
+
+  for (const p of PHASES) {
+    const days = DAYS.slice(p.from - 1, p.to);
+    const done = days.reduce((sum, d) => sum + perDay[d.n], 0);
+    const total = days.reduce((sum, d) => sum + d.tasks.length, 0);
+    document.querySelectorAll(`[data-phase-count="${p.n}"]`).forEach(el => { el.textContent = `${done}/${total}`; });
+    document.querySelector(`.phase[data-phase="${p.n}"]`).classList.toggle('finished', done === total);
+  }
+
+  let proj = 0;
+  for (const p of PROJECTS) {
+    const done = p.tasks.filter((_, i) => ticks[projId(p.n, i)]).length;
+    proj += done;
+    const card = document.querySelector(`[data-project="${p.n}"]`);
+    card.classList.toggle('done', done === p.tasks.length);
+    card.querySelector('.count').textContent = `${done}/${p.tasks.length}`;
+  }
+
+  const all = TOTAL_DAILY + TOTAL_PROJ;
+  const pct = (daily + proj) / all * 100;
+  $('pct').textContent = `${pct > 0 && pct < 1 ? '<1' : Math.floor(pct)}%`;
+  $('totals').textContent = `${daily + proj} of ${all} boxes ticked`;
+  $('bar').style.width = `${pct}%`;
+  $('sDays').textContent = `${daysDone}/${DAYS.length}`;
+  $('sTasks').textContent = `${daily}/${TOTAL_DAILY}`;
+  $('sProj').textContent = `${proj}/${TOTAL_PROJ}`;
+  $('projCount').textContent = `${proj}/${TOTAL_PROJ}`;
+
+  // Leave a just-finished day on screen for a moment before the next one takes its place
+  clearTimeout(heroTimer);
+  if (next !== heroDay) {
+    heroTimer = setTimeout(() => { heroDay = next; renderHero(); paint(); }, 800);
+  }
+}
+
+function goToDay(n) {
+  const card = document.querySelector(`#phases .day[data-day="${n}"]`);
+  if (card.classList.contains('done') && $('hide').checked) {
+    $('hide').checked = false;
+    applyHide();
+  }
+  card.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' });
+  card.classList.remove('flash');
+  void card.offsetWidth;
+  card.classList.add('flash');
+}
+
+function applyHide() {
+  document.body.classList.toggle('hide-done', $('hide').checked);
+  try { localStorage.setItem(HIDE_KEY, $('hide').checked ? '1' : ''); } catch { /* storage blocked */ }
+}
+
+document.addEventListener('change', e => {
+  if (e.target.dataset.t) setTick(e.target.dataset.t, e.target.checked);
+});
+document.addEventListener('click', e => {
+  const cell = e.target.closest('[data-go]');
+  if (cell) goToDay(+cell.dataset.go);
+});
+const toTop = () => scrollTo({ top: 0, behavior: calm ? 'auto' : 'smooth' });
+$('toTop').addEventListener('click', toTop);
+$('jump').addEventListener('click', toTop);
+$('hide').addEventListener('change', applyHide);
+
+loadLocal();
+build();
+heroDay = firstOpenDay();
+renderHero();
+paint();
+try { $('hide').checked = localStorage.getItem(HIDE_KEY) === '1'; } catch { /* storage blocked */ }
+document.body.classList.toggle('hide-done', $('hide').checked);
+connect();
+</script>
